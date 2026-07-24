@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Voltis.Infrastructure\Voltis.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
