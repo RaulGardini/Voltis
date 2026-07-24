@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Voltis.Api/Voltis.Api.csproj" />
+  <Project Path="Voltis.Domain/Voltis.Domain.csproj" />
+  <Project Path="Voltis.Infrastructure/Voltis.Infrastructure.csproj" />
+</Solution>
