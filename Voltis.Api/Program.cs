@@ -19,7 +19,9 @@ builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // --- Autenticação JWT (nova) ---
-var chaveJwt = builder.Configuration["Jwt:Chave"]!;
+var chaveJwt = builder.Configuration["Jwt:Chave"]
+    ?? throw new InvalidOperationException(
+        "Configuração 'Jwt:Chave' ausente. Defina via user-secrets ou variável de ambiente.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -48,13 +50,14 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
