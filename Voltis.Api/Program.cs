@@ -48,6 +48,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// --- CORS (novo) ---
+// O browser bloqueia chamadas do front (outra origem) para a API se ela
+// não devolver os cabeçalhos CORS. Origens vêm da configuração e NUNCA de
+// AllowAnyOrigin: em produção isso deixaria qualquer site chamar a API
+// com o token do usuário.
+const string PoliticaCorsFrontend = "frontend";
+
+var origensPermitidas = builder.Configuration
+    .GetSection("Cors:OrigensPermitidas")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(PoliticaCorsFrontend, policy =>
+    {
+        policy.WithOrigins(origensPermitidas)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+        // Sem AllowCredentials de propósito: o token vai no cabeçalho
+        // Authorization, não em cookie. Se um dia migrar para cookie
+        // httpOnly, aí sim precisa (e junto vem proteção CSRF).
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -61,6 +85,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// CORS antes de Authentication: o preflight (OPTIONS) chega sem token e
+// precisa ser respondido antes de qualquer checagem de identidade.
+app.UseCors(PoliticaCorsFrontend);
 
 // A ORDEM aqui importa e é fonte clássica de bug:
 // Authentication (quem é você?) SEMPRE antes de Authorization (você pode?).
