@@ -42,6 +42,12 @@ public class AuthController : ControllerBase
         var usuario = new Usuario(request.Nome.Trim(), emailNormalizado, senhaHash);
 
         _db.Usuarios.Add(usuario);
+
+        // A configuração nasce junto com o usuário (dia 1, moeda BRL).
+        // Como as duas entidades entram no mesmo SaveChanges, o EF salva
+        // tudo em uma única transação: ou grava os dois, ou nenhum.
+        _db.ConfiguracoesUsuario.Add(new ConfiguracaoUsuario(usuario.Id));
+
         await _db.SaveChangesAsync();
 
         var token = _tokenService.GerarToken(usuario);
