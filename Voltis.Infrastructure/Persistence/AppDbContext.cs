@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<ConfiguracaoUsuario> ConfiguracoesUsuario => Set<ConfiguracaoUsuario>();
+    public DbSet<Conta> Contas => Set<Conta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
