@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Voltis.Api.DTOs;
 using Voltis.Domain.Entities;
@@ -9,6 +11,13 @@ namespace Voltis.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+// Único controller público: é aqui que o usuário consegue o token, então
+// exigir token seria circular. Precisa ser explícito porque a FallbackPolicy
+// de Program.cs fecha tudo por padrão.
+[AllowAnonymous]
+// Limite por IP nas duas rotas: login sofre força bruta, registrar sofre
+// criação de contas em massa.
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;

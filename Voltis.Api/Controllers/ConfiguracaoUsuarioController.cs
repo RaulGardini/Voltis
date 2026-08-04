@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Voltis.Api.DTOs;
+using Voltis.Api.Extensions;
 using Voltis.Domain.Entities;
 using Voltis.Infrastructure.Persistence;
 
@@ -8,6 +10,10 @@ namespace Voltis.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+// Redundante com a FallbackPolicy de Program.cs, e de propósito: deixa
+// explícito no arquivo que estas rotas exigem token, sem precisar ir ler
+// a configuração global para descobrir.
+[Authorize]
 public class ConfiguracaoUsuarioController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -17,9 +23,14 @@ public class ConfiguracaoUsuarioController : ControllerBase
         _db = db;
     }
 
-    [HttpGet("{usuarioId:guid}")]
-    public async Task<IActionResult> ObterPorUsuario(Guid usuarioId)
+    // Sem {usuarioId} na rota: o usuário é sempre o dono do token. Enquanto o
+    // id vinha da URL, qualquer um autenticado lia e editava a configuração
+    // de qualquer outro só trocando o Guid.
+    [HttpGet]
+    public async Task<IActionResult> Obter()
     {
+        var usuarioId = User.ObterUsuarioId();
+
         var configuracao = await _db.ConfiguracoesUsuario
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
@@ -34,9 +45,11 @@ public class ConfiguracaoUsuarioController : ControllerBase
         });
     }
 
-    [HttpPut("{usuarioId:guid}")]
-    public async Task<IActionResult> Atualizar(Guid usuarioId, AtualizarConfiguracaoUsuarioRequest request)
+    [HttpPut]
+    public async Task<IActionResult> Atualizar(AtualizarConfiguracaoUsuarioRequest request)
     {
+        var usuarioId = User.ObterUsuarioId();
+
         var moedaNormalizada = request.Moeda.Trim().ToUpperInvariant();
 
         if (!ConfiguracaoUsuario.MoedasPermitidas.Contains(moedaNormalizada))
